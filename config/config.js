@@ -2,23 +2,23 @@ var os = require('os');
 
 var config = {};
 config.development = {
-  // Config for database, only support mysql.
+  // 修改数据库连接信息
   db: {
     username: process.env.RDS_USERNAME || "root",
-    password: process.env.RDS_PASSWORD || null,
+    password: process.env.RDS_PASSWORD || "root123456",
     database: process.env.DATA_BASE || "codepush",
-    host: process.env.RDS_HOST || "127.0.0.1",
+    host: process.env.RDS_HOST || "localhost",
     port: process.env.RDS_PORT || 3306,
     dialect: "mysql",
     logging: false,
     operatorsAliases: false,
   },
-  // Config for qiniu (http://www.qiniu.com/) cloud storage when storageType value is "qiniu".
+  // 如果存储类型“storageType”为“qiniu”如果更新包放在七牛，需要配置相关信息 (http://www.qiniu.com/) 。
   qiniu: {
-    accessKey: "",
-    secretKey: "",
-    bucketName: "",
-    downloadUrl: "" // Binary files download host address.
+    accessKey: "PTVdOXdxrBizsZLfS60dFmw8xcm7QflArsEjho8q",
+    secretKey: "gYFSlO9BgUK81UGY619wBkDR6SwJiEhyC7iDWZGX",
+    bucketName: "ynsyimg-test",
+    downloadUrl: "http://testimg.ynsy.com" // Binary files download host address.
   },
   // Config for upyun (https://www.upyun.com/) storage when storageType value is "upyun"
   upyun: {
@@ -37,7 +37,7 @@ config.development = {
     region: process.env.REGION,
     downloadUrl: process.env.DOWNLOAD_URL, // binary files download host address.
   },
-  // Config for Aliyun OSS (https://www.aliyun.com/product/oss) when storageType value is "oss".
+  // 阿里云存储配置 当storageType为oss时需要配置
   oss: {
     accessKeyId: "",
     secretAccessKey: "",
@@ -54,19 +54,21 @@ config.development = {
     region: "",
     downloadUrl: "", // binary files download host address.
   },
-  // Config for local storage when storageType value is "local".
+  // 文件存储在本地配置 当storageType为local时需要配置
   local: {
+    // 待更新文件存储路径
     // Binary files storage dir, Do not use tmpdir and it's public download dir.
-    storageDir: process.env.STORAGE_DIR || "/Users/tablee/workspaces/storage",
-    // Binary files download host address which Code Push Server listen to. the files storage in storageDir.
-    downloadUrl: process.env.LOCAL_DOWNLOAD_URL || "http://127.0.0.1:3000/download",
+    storageDir: process.env.STORAGE_DIR || "/Users/wuguanghua/WorkSpace/code-push-server/storage/storage",
+    // 文件下载地址 CodePush Server 地址 + '/download' download对应app.js里面的地址
+    downloadUrl: process.env.LOCAL_DOWNLOAD_URL || "http://192.168.0.98:3000/download",
     // public static download spacename.
     public: '/download'
   },
   jwt: {
+    // 登录jwt签名密钥，必须更改，否则有安全隐患，可以使用随机生成的字符串
     // Recommended: 63 random alpha-numeric characters
     // Generate using: https://www.grc.com/passwords.htm
-    tokenSecret: process.env.TOKEN_SECRET ||'INSERT_RANDOM_TOKEN_KEY'
+    tokenSecret: process.env.TOKEN_SECRET || 'wAW3ei4JP5ypmW60nwKGrKl741Ipybc6VrU5g47oHVLvogSVIR7g5qiioKkfXwL'
   },
   common: {
     /*
@@ -80,9 +82,11 @@ config.development = {
     // create patch updates's number. default value is 3
     diffNums: 3,
     // data dir for caclulate diff files. it's optimization.
-    dataDir: process.env.DATA_DIR || os.tmpdir(),
-    // storageType which is your binary package files store. options value is ("local" | "qiniu" | "s3"| "oss" || "tencentcloud")
-    storageType: process.env.STORAGE_TYPE || "local",
+    // 临时文件存储路径.
+    // dataDir: process.env.DATA_DIR || os.tmpdir(),
+    dataDir: "/Users/wuguanghua/WorkSpace/code-push-server/storage/data",
+    // 选择存储类型，目前支持local,oss,qiniu,s3配置
+    storageType: process.env.STORAGE_TYPE || "qiniu",
     // options value is (true | false), when it's true, it will cache updateCheck results in redis.
     updateCheckCache: false,
     // options value is (true | false), when it's true, it will cache rollout results in redis
@@ -109,12 +113,12 @@ config.development = {
           return new Error('The server refused the connection');
         }
         if (options.total_retry_time > 1000 * 60 * 60) {
-            // End reconnecting after a specific timeout and flush all commands with a individual error
-            return new Error('Retry time exhausted');
+          // End reconnecting after a specific timeout and flush all commands with a individual error
+          return new Error('Retry time exhausted');
         }
         if (options.times_connected > 10) {
-            // End reconnecting with built in error
-            return undefined;
+          // End reconnecting with built in error
+          return undefined;
         }
         // reconnect after
         return Math.max(options.attempt * 100, 3000);
